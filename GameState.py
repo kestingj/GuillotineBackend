@@ -1,6 +1,7 @@
 
 from Card import Card
 from random import shuffle
+from PlayerState import PlayerState
 import uuid
 
 
@@ -15,6 +16,7 @@ class GameState:
         self.previousPlays = []  # Track the entire game's play history
         self.id = uuid.uuid4()
         self.playerIds = playerIds
+        self.turn = playerIds[0]
 
     # True if player can play the hand, False otherwise
     def playHand(self, playerId, hand):
@@ -28,10 +30,14 @@ class GameState:
         self.gameState[playerId] = existingHand - hand
         self.previousPlays.append((playerId, hand))
         print "Returned True"
+        self.turn = self.getNextPlayer(playerId)
         return True
 
     def getPlayerState(self, playerId):
-        return self.gameState[playerId]
+        return PlayerState(playerId, self.gameState[playerId], self.getPlayersIds(), self.getPreviousPlays(), self.getTurn())
+
+    def getTurn(self):
+        return self.turn
 
     def getPreviousPlays(self):
         return self.previousPlays
@@ -50,8 +56,6 @@ class GameState:
         if index >= self.playerIds.count:
             index = 0
         return self.playerIds[index]
-
-
 
 
 def getRandomHands(numberOfPlayers):

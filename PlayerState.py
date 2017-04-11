@@ -1,8 +1,8 @@
 class PlayerState:
-    def __init__(self, playerId, hand, otherPlayerIds, previousPlays, turn):
+    def __init__(self, playerId, hand, cardsInHands, previousPlays, turn):
         self.playerId = playerId
         self.hand = hand
-        self.otherPlayerIds = otherPlayerIds
+        self.playerIds = playerIds
         self.previousPlays = previousPlays
         self.turn = turn
 
@@ -12,8 +12,8 @@ class PlayerState:
     def getHand(self):
         return self.hand
 
-    def getOtherPlayerIds(self):
-        return self.otherPlayerIds
+    def playerIds(self):
+        return self.playerIds
 
     def getPreviousPlays(self):
         return self.previousPlays

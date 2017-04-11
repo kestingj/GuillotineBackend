@@ -46,7 +46,7 @@ class GameManager:
         if not self.gameIdExists(gameId):
             return None
         gameState = self.games[gameId]
-        return (gameState.getPlayerState(playerId), gameState.getPreviousPlays)
+        return gameState.getPlayerState(playerId)
 
 
     def pushStateToPlayer(self, playerId, playerState, previousPlays):
