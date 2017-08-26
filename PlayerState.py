@@ -1,8 +1,10 @@
+
+# A PlayerState includes all player-specific game state information that will be passed back to that player
 class PlayerState:
-    def __init__(self, playerId, hand, cardsInHands, previousPlays, turn):
+    def __init__(self, playerId, hand, playersToCardsInHand, previousPlays, turn):
         self.playerId = playerId
         self.hand = hand
-        self.playerIds = playerIds
+        self.playersToCardsInHand = playersToCardsInHand
         self.previousPlays = previousPlays
         self.turn = turn
 
@@ -12,8 +14,8 @@ class PlayerState:
     def getHand(self):
         return self.hand
 
-    def playerIds(self):
-        return self.playerIds
+    def getPlayersToCardsInHand(self):
+        return self.playersToCardsInHand
 
     def getPreviousPlays(self):
         return self.previousPlays

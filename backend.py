@@ -1,57 +1,36 @@
-'''
-    Simple socket server using threads
-'''
+from waitress import serve
+import GameManager
 
-import socket
-import sys
-from thread import *
+game_manager = GameManager()
 
-HOST = ''   # Symbolic name meaning all available interfaces
-PORT = 8888  # Arbitrary non-privileged port
+def application(environ, start_response):
+    response_body = [
+        '%s: %s' % (key, value) for key, value in sorted(environ.items())
+    ]
+    response_body = '\n'.join(response_body)
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print 'Socket created'
+    # Adding strings to the response body
+    response_body = [
+        'The Beggining\n',
+        '*' * 30 + '\n',
+        response_body,
+        '\n' + '*' * 30,
+        '\nThe End'
+    ]
 
-# Bind socket to local host and port
-try:
-    s.bind((HOST, PORT))
-except socket.error as msg:
-    print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-    sys.exit()
-print 'Socket bind complete'
+    # So the content-length is the sum of all string's lengths
+    content_length = sum([len(s) for s in response_body])
 
-# Start listening on socket
-s.listen(10)
-print 'Socket now listening'
+    status = '200 OK'
+    response_headers = [
+        ('Content-Type', 'text/plain'),
+        ('Content-Length', str(content_length))
+    ]
 
+    start_response(status, response_headers)
 
-# Function for handling connections. This will be used to create threads
-def clientthread(conn):
-    # Sending message to connected client
-    conn.send('Welcome to the server. Type something and hit enter\n')
+    print game_manager.gameIdExists("bogus")
 
-    # infinite loop so that function do not terminate and thread do not end.
-    while True:
-        # Receiving from client
-        data = conn.recv(1024)
-        reply = 'OK...' + data
-        if not data:
-            break
+    return response_body
 
-        conn.sendall(reply)
-
-    # came out of loop
-    conn.close()
-
-
-# now keep talking with the client
-while 1:
-    # wait to accept a connection - blocking call
-    conn, addr = s.accept()
-    print 'Connected with ' + addr[0] + ':' + str(addr[1])
-
-    # start new thread takes 1st argument as a function name to be run,
-    # second is the tuple of arguments to the function.
-    start_new_thread(clientthread, (conn,))
-
-s.close()
+serve(application, listen='*:8080')

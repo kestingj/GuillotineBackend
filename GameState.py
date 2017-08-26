@@ -4,37 +4,43 @@ from random import shuffle
 from PlayerState import PlayerState
 import uuid
 
-
+# A GameState tracks all state for a single game. This state includes:
+# ID for the game
+# Players in the game
+# Hands for each player
+# History of plays made so far in the game
+# Players that have already finished the game
 class GameState:
-    def __init__(self, playerIds):
+    def __init__(self, playerIds, playerToGoFirst):
+        if playerToGoFirst not in playerIds:
+            raise ValueError("Player to go first: " + playerToGoFirst + " not found in playerIds: " + str(playerIds))
         hands = getRandomHands(len(playerIds))
-        gameState = {}
+        playerHands = {}
         for i in xrange(0, len(playerIds)):
-            gameState[playerIds[i]] = hands[i]
+            playerHands[playerIds[i]] = hands[i]
         self.playerCount = len(playerIds)
-        self.gameState = gameState
+        self.playerHands = playerHands
         self.previousPlays = []  # Track the entire game's play history
-        self.id = uuid.uuid4()
+        self.gameId = uuid.uuid4()
         self.playerIds = playerIds
-        self.turn = playerIds[0]
+        self.turn = playerToGoFirst
+        self.finishedPlayers = []
 
-    # True if player can play the hand, False otherwise
-    def playHand(self, playerId, hand):
-        existingHand = self.gameState[playerId]
-        print "HAND"
-        print hand
-        print existingHand
-        if not (hand.issubset(existingHand)):
-            print "Returned False"
-            return False
-        self.gameState[playerId] = existingHand - hand
-        self.previousPlays.append((playerId, hand))
-        print "Returned True"
+    # Throws if playerId does not equal turn or if play is not a subset of playerId's current hand
+    def play(self, playerId, play):
+        if playerId != self.turn:
+            raise ValueError("It is " + self.turn +"'s, not " + playerId + "'s, turn")
+        existingHand = self.playerHands[playerId]
+        if not (play.issubset(existingHand)):
+            raise ValueError("play: " + str(play) + " is not a subset of existing hand " + str(existingHand) + " for player " + playerId)
+        self.playerHands[playerId] = existingHand - play
+        if len(self.playerHands[playerId]) == 0:
+            self.finishedPlayers.append(playerId)
+        self.previousPlays.append((playerId, play))
         self.turn = self.getNextPlayer(playerId)
-        return True
 
     def getPlayerState(self, playerId):
-        return PlayerState(playerId, self.gameState[playerId], self.getPlayersIds(), self.getPreviousPlays(), self.getTurn())
+        return PlayerState(playerId, self.playerHands[playerId], self.getPlayersIds(), self.getPreviousPlays(), self.getTurn())
 
     def getTurn(self):
         return self.turn
@@ -46,17 +52,30 @@ class GameState:
         self.previousPlays = []
 
     def getId(self):
-        return self.id
+        return self.gameId
 
     def getPlayersIds(self):
         return self.playerIds
 
-    def getNextPlayer(self, currentPlayerId):
-        index = self.playerIds.index(currentPlayerId) + 1
-        if index >= self.playerIds.count:
-            index = 0
-        return self.playerIds[index]
+    def getFinishedPlayers(self):
+        return self.finishedPlayers
 
+    # Game is finished when all but one player has finished
+    def isGameFinished(self):
+        return len(self.finishedPlayers) == len(self.playerIds) - 1
+
+    def getNextPlayer(self, currentPlayerId):
+
+        index = self.playerIds.index(currentPlayerId)
+
+        while(True):
+            index += 1
+            if index >= len(self.playerIds):
+                index = 0
+            if self.playerIds[index] not in self.finishedPlayers:
+                break
+
+        return self.playerIds[index]
 
 def getRandomHands(numberOfPlayers):
         cards = []
