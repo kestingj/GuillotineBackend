@@ -6,6 +6,7 @@ def setup():
     game_manager = GameManager()
 
 def application(environ, start_response):
+    print "packet received"
     response_body = [
         '%s: %s' % (key, value) for key, value in sorted(environ.items())
     ]
@@ -32,9 +33,10 @@ def application(environ, start_response):
     start_response(status, response_headers)
 
     print game_manager.gameIdExists("bogus")
-
+    print "response returned"
     return response_body
 
 setup()
+print  "setup complete"
 
 serve(application, listen='*:8080')
