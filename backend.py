@@ -1,7 +1,9 @@
 from waitress import serve
-import GameManager
+from GameManager import GameManager
 
-game_manager = GameManager()
+def setup():
+    global game_manager
+    game_manager = GameManager()
 
 def application(environ, start_response):
     response_body = [
@@ -32,5 +34,7 @@ def application(environ, start_response):
     print game_manager.gameIdExists("bogus")
 
     return response_body
+
+setup()
 
 serve(application, listen='*:8080')
