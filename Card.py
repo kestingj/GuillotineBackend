@@ -1,14 +1,15 @@
-class Card:
-    """docstring for Card"""
+class Card(dict):
+
     def __init__(self, rank, suit):
-        self.rank = rank
-        self.suit = suit
+        super().__init__()
+        self['rank'] = rank
+        self['suit'] = suit
 
     def __eq__(self, other):
-        return self.rank == other.rank and self.suit == other.suit
+        return self['rank'] == other['rank'] and self['suit'] == other['suit']
 
     def __hash__(self):
-        return self.rank + self.suit * 4
+        return self['rank'] + self['suit'] * 4
 
     def __repr__(self):
         return self.representation()
@@ -17,4 +18,4 @@ class Card:
         return self.representation()
 
     def representation(self):
-        return "{Suit: " + str(self.suit) + ", Rank: " + str(self.rank) + "}"
+        return "{Suit: " + str(self['suit']) + ", Rank: " + str(self['rank']) + "}"

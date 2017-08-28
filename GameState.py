@@ -16,12 +16,12 @@ class GameState:
             raise ValueError("Player to go first: " + playerToGoFirst + " not found in playerIds: " + str(playerIds))
         hands = getRandomHands(len(playerIds))
         playerHands = {}
-        for i in xrange(0, len(playerIds)):
+        for i in range(0, len(playerIds)):
             playerHands[playerIds[i]] = hands[i]
         self.playerCount = len(playerIds)
         self.playerHands = playerHands
         self.previousPlays = []  # Track the entire game's play history
-        self.gameId = uuid.uuid4()
+        self.gameId = str(uuid.uuid4())
         self.playerIds = playerIds
         self.turn = playerToGoFirst
         self.finishedPlayers = []
@@ -40,7 +40,10 @@ class GameState:
         self.turn = self.getNextPlayer(playerId)
 
     def getPlayerState(self, playerId):
-        return PlayerState(playerId, self.playerHands[playerId], self.getPlayersIds(), self.getPreviousPlays(), self.getTurn())
+        player_to_hand_size = {}
+        for player_id in self.playerIds:
+            player_to_hand_size[player_id] = len(self.playerHands[player_id])
+        return PlayerState(playerId, self.playerHands[playerId], player_to_hand_size, self.getPreviousPlays(), self.getTurn())
 
     def getTurn(self):
         return self.turn
@@ -79,14 +82,14 @@ class GameState:
 
 def getRandomHands(numberOfPlayers):
         cards = []
-        for rank in xrange(2, 15):
-            for suit in xrange(0, 4):
+        for rank in range(2, 15):
+            for suit in range(0, 4):
                 cards.append(Card(rank, suit))
         shuffle(cards)
         hands = []
-        for player in xrange(0, numberOfPlayers):
+        for player in range(0, numberOfPlayers):
             hand = []
-            for i in xrange(0, 13):
+            for i in range(0, 13):
                 hand.append(cards.pop())
             hands.append(set(hand))
         return hands

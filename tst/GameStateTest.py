@@ -13,7 +13,7 @@ class GameStateTest(unittest.TestCase):
         allCards = set()
 
         for i in range(0, len(self.playerIds)):
-            hand = self.gameState.getPlayerState(self.playerIds[i]).hand
+            hand = self.gameState.getPlayerState(self.playerIds[i])['hand']
             self.assertEqual(len(hand), 13)
             allCards = allCards.union(hand)
 
@@ -52,8 +52,12 @@ class GameStateTest(unittest.TestCase):
 
         self.assertTrue(self.gameState.isGameFinished())
 
+    def testGetPlayerState(self):
+        player_state = self.gameState.getPlayerState(self.playerIds[0])
+        self.assertEqual(player_state['playersToCardsInHand'][self.playerIds[0]], 13)
+
     def playHandForPlayer(self, playerId):
-        playerHand = self.gameState.getPlayerState(playerId).hand.copy()
+        playerHand = self.gameState.getPlayerState(playerId)['hand'].copy()
         playerPlay = set([playerHand.pop()]) # Play one card
         self.gameState.play(playerId, playerPlay)
         return playerPlay

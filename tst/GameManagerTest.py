@@ -41,13 +41,13 @@ class GameStateTest(unittest.TestCase):
         playerId = self.playerIds[0]
         gameState = GameState(self.playerIds, playerId)
         # Before game state has been added
-        self.assertEqual(self.gameManager.getPlayerState(playerId, gameState.gameId), None)
+        self.assertEqual(self.gameManager.getPlayerState(gameState.gameId, playerId), None)
 
         mockedPlayerState = PlayerState(playerId, [], {}, [], self.playerIds[1])
         gameState.getPlayerState = MagicMock(return_value=mockedPlayerState)
         self.gameManager.addGame(gameState)
 
-        playerState = self.gameManager.getPlayerState(playerId, gameState.gameId)
+        playerState = self.gameManager.getPlayerState(gameState.gameId, playerId)
         self.assertEqual(playerState, mockedPlayerState)
 
     @patch.object(GameState, 'play')

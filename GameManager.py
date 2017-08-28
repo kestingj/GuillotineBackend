@@ -45,7 +45,7 @@ class GameManager:
             logging.warning('No game with id: ' + str(gameId) + ' exists')
             return False
 
-    def getPlayerState(self, playerId, gameId):
+    def getPlayerState(self, gameId, playerId):
         if not self.gameIdExists(gameId):
             return None
         gameState = self.games[gameId]
