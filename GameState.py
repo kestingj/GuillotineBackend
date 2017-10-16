@@ -11,20 +11,42 @@ import uuid
 # History of plays made so far in the game
 # Players that have already finished the game
 class GameState:
-    def __init__(self, playerIds, playerToGoFirst):
-        if playerToGoFirst not in playerIds:
-            raise ValueError("Player to go first: " + playerToGoFirst + " not found in playerIds: " + str(playerIds))
-        hands = getRandomHands(len(playerIds))
+    def __init__(self):
+        self.initialized = False
+
+    def deserialize(self, game_json, game_id):
+        if self.initialized:
+            raise ValueError("Game already initialized")
+        self.gameId = game_id
+        self.playerIds = game_json['playerIds']
+        self.previousPlays = self.deserialize_previous_plays(game_json['previousPlays'])
+        self.playerHands = game_json['playerHands']
+        self.turn = game_json['turn']
+        self.finishedPlayers= game_json['finishedPlayers']
+        self.initialized = True
+
+    def deserialize_previous_plays(self, previous_plays_json):
+        previous_plays = []
+        for play in previous_plays_json:
+            previous_plays.append((play['playerId'], play['play']))
+        return previous_plays
+
+    def new_game(self, player_ids, player_to_go_first):
+        if self.initialized:
+            raise ValueError("Game already initialized")
+        if player_to_go_first not in player_ids:
+            raise ValueError("Player to go first: " + player_to_go_first + " not found in playerIds: " + str(player_ids))
+        hands = getRandomHands(len(player_ids))
         playerHands = {}
-        for i in range(0, len(playerIds)):
-            playerHands[playerIds[i]] = hands[i]
-        self.playerCount = len(playerIds)
+        for i in range(0, len(player_ids)):
+            playerHands[player_ids[i]] = hands[i]
         self.playerHands = playerHands
         self.previousPlays = []  # Track the entire game's play history
         self.gameId = str(uuid.uuid4())
-        self.playerIds = playerIds
-        self.turn = playerToGoFirst
+        self.playerIds = player_ids
+        self.turn = player_to_go_first
         self.finishedPlayers = []
+        self.initialized = True
 
     # Throws if playerId does not equal turn or if play is not a subset of playerId's current hand
     def play(self, playerId, play):
@@ -79,6 +101,32 @@ class GameState:
                 break
 
         return self.playerIds[index]
+
+    def serialize(self):
+        json = {}
+        json['playerHands'] = self.playerHands
+        json['turn'] = self.turn
+        json['previousPlays'] = self.jsonify_previous_plays()
+        json['finishedPlayers'] = self.finishedPlayers
+        json['playerIds'] = self.playerIds
+        return json
+
+    def jsonify_previous_plays(self):
+        prev_plays_json = []
+        for play in self.previousPlays:
+            play_dict = {}
+            play_dict['playerId'] = play[0]
+            play_dict['play'] = play[1]
+            prev_plays_json.append(play_dict)
+        return prev_plays_json
+
+    def __eq__(self, other):
+        return self.gameId == other.gameId \
+               and self.playerIds == other.playerIds \
+               and self.playerHands == other.playerHands \
+               and self.turn == other.turn \
+               and self.finishedPlayers == other.finishedPlayers \
+               and self.previousPlays == other.previousPlays
 
 def getRandomHands(numberOfPlayers):
         cards = []

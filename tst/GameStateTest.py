@@ -1,13 +1,13 @@
 import unittest
 from GameState import *
 
-
 class GameStateTest(unittest.TestCase):
 
     playerIds = ["Joseph", "Peter", "Nick", "Micha"]
 
     def setUp(self):
-        self.gameState = GameState(self.playerIds, "Joseph")
+        self.gameState = GameState()
+        self.gameState.new_game(self.playerIds, self.playerIds[0])
 
     def testHandsAreUnique(self):
         allCards = set()
@@ -33,7 +33,7 @@ class GameStateTest(unittest.TestCase):
         self.assertRaises(ValueError, self.gameState.play, self.playerIds[0], invalid)
 
     def testInitThrows_whenPlayerToGoFirstNotInPlayerIds(self):
-        self.assertRaises(ValueError, GameState, self.playerIds, "Alex")
+        self.assertRaises(ValueError, self.gameState.new_game, self.playerIds, "Alex")
 
     def testPlayHandReturnsFalse_whenItIsNotThatPlayersTurn(self):
         self.assertRaises(ValueError, self.gameState.play, "Micha", set())
@@ -55,6 +55,14 @@ class GameStateTest(unittest.TestCase):
     def testGetPlayerState(self):
         player_state = self.gameState.getPlayerState(self.playerIds[0])
         self.assertEqual(player_state['playersToCardsInHand'][self.playerIds[0]], 13)
+
+    def test_serialization_deserialization(self):
+        self.playHandForPlayer(self.playerIds[0])
+        serialized_game = self.gameState.serialize()
+        deserialized_game = GameState()
+        deserialized_game.deserialize(serialized_game, self.gameState.getId())
+        self.assertEqual(self.gameState, deserialized_game)
+
 
     def playHandForPlayer(self, playerId):
         playerHand = self.gameState.getPlayerState(playerId)['hand'].copy()

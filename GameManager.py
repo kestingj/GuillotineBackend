@@ -6,6 +6,7 @@ class GameManager:
 
     def __init__(self):
         self.games = {}
+        # call to load balancer to determine which grids we own
 
     def createNewGame(self, playerIds, playerToGoFirst):
         gameState = GameState(playerIds, playerToGoFirst)
@@ -51,9 +52,9 @@ class GameManager:
         gameState = self.games[gameId]
         return gameState.getPlayerState(playerId)
 
-    def checkpointState(self):
-        pass
-        # Checkpoint game state to DDB
+    def checkpointState(self, game_id):
+        game_state = self.games[game_id]
+        serialized_game_state = game_state
 
     def pushStateToPlayer(self, playerId, playerState):
         pass

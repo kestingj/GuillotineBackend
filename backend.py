@@ -7,7 +7,7 @@ game_manager = GameManager()
 
 @app.route('/games', methods=['POST'])
 def startNewGame():
-    player_ids = request.json['playerIds']
+    player_ids = request.get_json()['playerIds']
     starting_player = request.get_json()['startingPlayer']
     game_id = game_manager.createNewGame(player_ids, starting_player)
     return jsonify({'gameCount' : len(game_manager.games), 'gameId' : str(game_id)})
@@ -25,8 +25,6 @@ def play(game_id, player_id):
         play_set.add(Card(card['rank'], card['suit']))
     game_manager.playHand(game_id, player_id, play_set)
     return jsonify(game_manager.getPlayerState(game_id, player_id)['hand'])
-
-print("setup complete")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
