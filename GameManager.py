@@ -1,12 +1,12 @@
 from GameState import *
 import logging
 
+          
 # A GameManager manages all games for a single host. The server routes all calls to the game manager
 class GameManager:
 
     def __init__(self):
         self.games = {}
-        # call to load balancer to determine which grids we own
 
     def createNewGame(self, playerIds, playerToGoFirst):
         gameState = GameState(playerIds, playerToGoFirst)
