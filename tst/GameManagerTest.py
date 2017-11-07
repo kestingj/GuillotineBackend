@@ -5,64 +5,55 @@ from mock import patch
 
 class GameStateTest(unittest.TestCase):
 
-    playerIds = ["Joseph", "Peter", "Nick", "Micha"]
-    game_id ="gameId"
+    player_ids = ["Joseph", "Peter", "Nick", "Micha"]
+    game_id = "gameId"
 
     def setUp(self):
-        self.gameManager = GameManager()
+        self.game_manager = GameManager()
 
     def testCreateNewGame(self):
-        gameId = self.gameManager.create_new_game(self.playerIds, self.playerIds[0])
-        self.assertTrue(self.gameManager.game_id_exists(gameId))
-
-    def testAddGame(self):
-        gameState = GameState(self.playerIds, self.playerIds[0])
-        self.gameManager.__add_game__(gameState)
-        self.assertEqual(self.gameManager.games[gameState.game_id], gameState)
+        self.game_manager.create_new_game(self.game_id, self.player_ids, self.player_ids[0])
+        self.assertTrue(self.game_manager.game_id_exists(self.game_id))
 
     def testDeleteGame(self):
-        gameState = GameState(self.playerIds, self.playerIds[0])
-        # Before game state has been added
-        self.assertFalse(self.gameManager.__delete_game__(gameState.game_id))
+        self.__initialize_game_state__()
+        self.game_manager.__delete_game__(self.game_id)
+        self.assertFalse(self.game_manager.game_id_exists(self.game_id))
 
-        self.gameManager.__add_game__(gameState)
-        self.assertTrue(self.gameManager.__delete_game__(gameState.game_id))
-        self.assertFalse(self.gameManager.game_id_exists(gameState.game_id))
+        # Assert that delete is idempotent
+        self.game_manager.__delete_game__(self.game_id)
 
     def testGameIdExists(self):
-        gameState = GameState(self.playerIds, self.playerIds[0])
         # Before game state has been added
-        self.assertFalse(self.gameManager.game_id_exists(gameState.game_id))
+        self.assertFalse(self.game_manager.game_id_exists(self.game_id))
 
-        self.gameManager.__add_game__(gameState)
+        self.__initialize_game_state__()
 
-        self.assertTrue(self.gameManager.game_id_exists(gameState.game_id))
+        self.assertTrue(self.game_manager.game_id_exists(self.game_id))
 
     def testGetPlayerState(self):
-        playerId = self.playerIds[0]
-        gameState = GameState(self.playerIds, playerId)
-        # Before game state has been added
-        self.assertEqual(self.gameManager.get_player_state(gameState.game_id, playerId), None)
+        game_state = self.__initialize_game_state__()
 
-        mockedPlayerState = PlayerState(playerId, [], {}, [], self.playerIds[1])
-        gameState.get_player_state = MagicMock(return_value=mockedPlayerState)
-        self.gameManager.__add_game__(gameState)
+        mockedPlayerState = PlayerState(self.player_ids[0], [], {}, [], self.player_ids[1])
+        game_state.get_player_state = MagicMock(return_value=mockedPlayerState)
 
-        playerState = self.gameManager.get_player_state(gameState.game_id, playerId)
-        self.assertEqual(playerState, mockedPlayerState)
+        player_state = self.game_manager.get_player_state(self.game_id, self.player_ids[0])
+        self.assertEqual(player_state, mockedPlayerState)
 
-    @patch.object(GameState, 'play')
-    def testPlayHand(self, mockPlay):
-        playerId = self.playerIds[0]
-        gameState = GameState(self.playerIds, playerId)
-        # Before game state has been added
-        self.assertFalse(self.gameManager.play_hand(gameState.game_id, playerId, []))
+    @patch('GameState.GameState')
+    def testPlayHand(self, mock_game_state):
 
-        self.gameManager.__add_game__(gameState)
-        gameState.play = mockPlay
+        self.game_manager.games[self.game_id] = mock_game_state
 
-        self.assertTrue(self.gameManager.play_hand(gameState.game_id, playerId, []))
-        mockPlay.assert_called()
+
+        self.game_manager.play_hand(self.game_id, self.player_ids[0], [])
+        mock_game_state.play.assert_called()
+
+    def __initialize_game_state__(self):
+        game_state = GameState()
+        game_state.new_game(self.game_id, self.player_ids, self.player_ids[0])
+        self.game_manager.__add_game__(game_state)
+        return game_state
 
 if __name__ == '__main__':
     unittest.main()

@@ -20,7 +20,7 @@ class GameManager:
         logging.info('Added game with id: ' + str(game_state.get_id()))
 
     def __delete_game__(self, game_id):
-        del self.games[game_id]
+        self.games.pop(game_id, None)
         logging.info('Deleted game with id: ' + str(game_id))
 
     def play_hand(self, game_id, player_id, hand):
