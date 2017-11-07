@@ -6,48 +6,49 @@ from mock import patch
 class GameStateTest(unittest.TestCase):
 
     playerIds = ["Joseph", "Peter", "Nick", "Micha"]
+    game_id ="gameId"
 
     def setUp(self):
         self.gameManager = GameManager()
 
     def testCreateNewGame(self):
-        gameId = self.gameManager.createNewGame(self.playerIds, self.playerIds[0])
-        self.assertTrue(self.gameManager.gameIdExists(gameId))
+        gameId = self.gameManager.create_new_game(self.playerIds, self.playerIds[0])
+        self.assertTrue(self.gameManager.game_id_exists(gameId))
 
     def testAddGame(self):
         gameState = GameState(self.playerIds, self.playerIds[0])
-        self.gameManager.addGame(gameState)
-        self.assertEqual(self.gameManager.games[gameState.gameId], gameState)
+        self.gameManager.__add_game__(gameState)
+        self.assertEqual(self.gameManager.games[gameState.game_id], gameState)
 
     def testDeleteGame(self):
         gameState = GameState(self.playerIds, self.playerIds[0])
         # Before game state has been added
-        self.assertFalse(self.gameManager.deleteGame(gameState.gameId))
+        self.assertFalse(self.gameManager.__delete_game__(gameState.game_id))
 
-        self.gameManager.addGame(gameState)
-        self.assertTrue(self.gameManager.deleteGame(gameState.gameId))
-        self.assertFalse(self.gameManager.gameIdExists(gameState.gameId))
+        self.gameManager.__add_game__(gameState)
+        self.assertTrue(self.gameManager.__delete_game__(gameState.game_id))
+        self.assertFalse(self.gameManager.game_id_exists(gameState.game_id))
 
     def testGameIdExists(self):
         gameState = GameState(self.playerIds, self.playerIds[0])
         # Before game state has been added
-        self.assertFalse(self.gameManager.gameIdExists(gameState.gameId))
+        self.assertFalse(self.gameManager.game_id_exists(gameState.game_id))
 
-        self.gameManager.addGame(gameState)
+        self.gameManager.__add_game__(gameState)
 
-        self.assertTrue(self.gameManager.gameIdExists(gameState.gameId))
+        self.assertTrue(self.gameManager.game_id_exists(gameState.game_id))
 
     def testGetPlayerState(self):
         playerId = self.playerIds[0]
         gameState = GameState(self.playerIds, playerId)
         # Before game state has been added
-        self.assertEqual(self.gameManager.getPlayerState(gameState.gameId, playerId), None)
+        self.assertEqual(self.gameManager.get_player_state(gameState.game_id, playerId), None)
 
         mockedPlayerState = PlayerState(playerId, [], {}, [], self.playerIds[1])
-        gameState.getPlayerState = MagicMock(return_value=mockedPlayerState)
-        self.gameManager.addGame(gameState)
+        gameState.get_player_state = MagicMock(return_value=mockedPlayerState)
+        self.gameManager.__add_game__(gameState)
 
-        playerState = self.gameManager.getPlayerState(gameState.gameId, playerId)
+        playerState = self.gameManager.get_player_state(gameState.game_id, playerId)
         self.assertEqual(playerState, mockedPlayerState)
 
     @patch.object(GameState, 'play')
@@ -55,12 +56,12 @@ class GameStateTest(unittest.TestCase):
         playerId = self.playerIds[0]
         gameState = GameState(self.playerIds, playerId)
         # Before game state has been added
-        self.assertFalse(self.gameManager.playHand(gameState.gameId, playerId, []))
+        self.assertFalse(self.gameManager.play_hand(gameState.game_id, playerId, []))
 
-        self.gameManager.addGame(gameState)
+        self.gameManager.__add_game__(gameState)
         gameState.play = mockPlay
 
-        self.assertTrue(self.gameManager.playHand(gameState.gameId, playerId, []))
+        self.assertTrue(self.gameManager.play_hand(gameState.game_id, playerId, []))
         mockPlay.assert_called()
 
 if __name__ == '__main__':

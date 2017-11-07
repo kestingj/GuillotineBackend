@@ -8,54 +8,52 @@ class GameManager:
     def __init__(self):
         self.games = {}
 
-    def createNewGame(self, playerIds, playerToGoFirst):
-        gameState = GameState(playerIds, playerToGoFirst)
-        self.addGame(gameState)
-        return gameState.gameId
+    def create_new_game(self, game_id, player_ids, player_to_go_first):
+        game_state = GameState()
+        game_state.new_game(game_id, player_ids, player_to_go_first)
+        self.__add_game__(game_state)
 
-    def addGame(self, gameState):
-        if gameState.getId() in self.games:
-            logging.warning('Game with id: ' + gameState.getId() + ' already exists')
-            return False
-        self.games[gameState.getId()] = gameState
-        logging.info('Added game with id: ' + str(gameState.getId()))
-        return True
+    def __add_game__(self, game_state):
+        if game_state.get_id() in self.games:
+            raise ValueError('Game with id: ' + game_state.get_id() + ' already exists')
+        self.games[game_state.get_id()] = game_state
+        logging.info('Added game with id: ' + str(game_state.get_id()))
 
-    def deleteGame(self, gameId):
-        if self.gameIdExists(gameId):
-            del self.games[gameId]
-            logging.info('Deleted game with id: ' + str(gameId))
+    def __delete_game__(self, game_id):
+        del self.games[game_id]
+        logging.info('Deleted game with id: ' + str(game_id))
+
+    def play_hand(self, game_id, player_id, hand):
+        if not self.game_id_exists(game_id):
+            raise ValueError('No game with id: ' + game_id + ' is currently being managed by this instance')
+        game_state = self.games[game_id]
+        game_state.play(player_id, hand)
+        self.push_state_to_player(player_id, game_state.get_player_state(game_state.get_turn()))
+
+    def game_id_exists(self, game_id):
+        if game_id in self.games:
             return True
         else:
+            logging.warning('No game with id: ' + str(game_id) + ' exists')
             return False
 
-    def playHand(self, gameId, playerId, hand):
-        if not self.gameIdExists(gameId):
-            return False
-        gameState = self.games[gameId]
-        gameState.play(playerId, hand)
-            # nextPlayerId = gameState.nextPlayerId(playerId)
-            # playerState = gameState.getPlayerState(nextPlayerId)
-            # self.pushStateToPlayer(playerId, playerState)
-        return True
-
-    def gameIdExists(self, gameId):
-        if gameId in self.games:
-            return True
-        else:
-            logging.warning('No game with id: ' + str(gameId) + ' exists')
-            return False
-
-    def getPlayerState(self, gameId, playerId):
-        if not self.gameIdExists(gameId):
+    def get_player_state(self, game_id, player_id):
+        if not self.game_id_exists(game_id):
+            # TODO: Deserialize from checkpoint
             return None
-        gameState = self.games[gameId]
-        return gameState.getPlayerState(playerId)
+        game_state = self.games[game_id]
+        return game_state.get_player_state(player_id)
 
-    def checkpointState(self, game_id):
+    def checkpoint_state(self, game_id):
         game_state = self.games[game_id]
         serialized_game_state = game_state
 
-    def pushStateToPlayer(self, playerId, playerState):
+    def push_state_to_player(self, player_id, player_state):
         pass
         # use push notifications to push state to player
+
+    def ack_finished_game(self, game_id, player_id):
+        acked_by_all_players = self.games[game_id].ack_completion(player_id)
+        if acked_by_all_players:
+            #TODO: Send deletion message to load balancer
+            self.__delete_game__(game_id)

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class ClassName(Enum):
+class Suit(Enum):
     SPADE = 0
     CLUB = 1
     DIAMOND = 2
