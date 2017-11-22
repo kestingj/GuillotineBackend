@@ -55,5 +55,5 @@ class GameManager:
     def ack_finished_game(self, game_id, player_id):
         acked_by_all_players = self.games[game_id].ack_completion(player_id)
         if acked_by_all_players:
-            #TODO: Send deletion message to load balancer
+            #TODO: Implement a cron job that scans through all Games and sends delete messages for all games that have received a completion ack from every player
             self.__delete_game__(game_id)

@@ -3,7 +3,8 @@ from GameManager import *
 from mock import MagicMock
 from mock import patch
 
-class GameStateTest(unittest.TestCase):
+
+class GameManagerTest(unittest.TestCase):
 
     player_ids = ["Joseph", "Peter", "Nick", "Micha"]
     game_id = "gameId"
@@ -45,9 +46,36 @@ class GameStateTest(unittest.TestCase):
 
         self.game_manager.games[self.game_id] = mock_game_state
 
-
         self.game_manager.play_hand(self.game_id, self.player_ids[0], [])
         mock_game_state.play.assert_called()
+
+    @patch('GameState.GameState')
+    def testAckFinishedGame(self, mock_game_state):
+        self.game_manager.games[self.game_id] = mock_game_state
+        player_id = self.player_ids[0]
+
+        # When player ack is not the final ack
+        mock_game_state.ack_completion = MagicMock(return_value=False, player_id=player_id)
+
+        self.game_manager.ack_finished_game(self.game_id, player_id)
+        mock_game_state.ack_completion.assert_called_with(player_id)
+
+        self.assertTrue(self.game_manager.game_id_exists(self.game_id))
+
+        # When player ack is the final ack
+        mock_game_state.ack_completion = MagicMock(return_value=True, player_id=player_id)
+
+        self.game_manager.ack_finished_game(self.game_id, player_id)
+
+        self.assertFalse(self.game_manager.game_id_exists(self.game_id))
+
+    def testCheckpointState(self):
+        # TODO Write when implemented
+        pass
+
+    def testPushStateToPlayer(self):
+        # TODO Write when implemented
+        pass
 
     def __initialize_game_state__(self):
         game_state = GameState()
