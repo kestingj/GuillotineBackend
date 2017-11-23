@@ -4,11 +4,11 @@ from GameState import *
 class GameStateTest(unittest.TestCase):
 
     player_ids = ["Joseph", "Peter", "Nick", "Micha"]
-
+    game_id = "gameId"
 
     def setUp(self):
         self.game_state = GameState()
-        self.game_state.new_game(self.player_ids, self.player_ids[0])
+        self.game_state.new_game(self.game_id, self.player_ids, self.player_ids[0])
 
     def testHandsAreUnique(self):
         all_cards = set()
@@ -34,7 +34,7 @@ class GameStateTest(unittest.TestCase):
         self.assertRaises(ValueError, self.game_state.play, self.player_ids[0], invalid)
 
     def testInitThrows_whenPlayerToGoFirstNotInPlayerIds(self):
-        self.assertRaises(ValueError, self.game_state.new_game, self.player_ids, "Alex")
+        self.assertRaises(ValueError, self.game_state.new_game, self.game_id, self.player_ids, "Alex")
 
     def testPlayHandReturnsFalse_whenItIsNotThatPlayersTurn(self):
         self.assertRaises(ValueError, self.game_state.play, "Micha", set())
@@ -48,7 +48,7 @@ class GameStateTest(unittest.TestCase):
 
     def testIsGameFinished(self):
         self.assertFalse(self.game_state.is_game_finished())
-        for i in range(0, 3):
+        for i in range(0, 4):
             self.game_state.finished_players.append(self.player_ids[i])
 
         self.assertTrue(self.game_state.is_game_finished())

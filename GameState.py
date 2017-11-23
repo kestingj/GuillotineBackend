@@ -121,7 +121,7 @@ class GameState:
         return prev_plays_json
 
     def __eq__(self, other):
-        return self.game_id == other.gameId \
+        return self.game_id == other.game_id \
                and self.player_ids == other.player_ids \
                and self.player_hands == other.player_hands \
                and self.turn == other.turn \
