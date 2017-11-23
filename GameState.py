@@ -37,7 +37,7 @@ class GameState:
             raise ValueError("Game already initialized")
         if player_to_go_first not in player_ids:
             raise ValueError("Player to go first: " + player_to_go_first + " not found in playerIds: " + str(player_ids))
-        hands = get_random_hands(len(player_ids))
+        hands = __get_random_hands__(len(player_ids))
         playerHands = {}
         for i in range(0, len(player_ids)):
             playerHands[player_ids[i]] = hands[i]
@@ -61,13 +61,13 @@ class GameState:
         if len(self.player_hands[player_id]) == 0:
             self.finished_players.append(player_id)
         self.previous_plays.append((player_id, play))
-        self.turn = self.get_next_player(player_id)
+        self.turn = self.__get_next_player__(player_id)
 
     def get_player_state(self, playerId):
         player_to_hand_size = {}
         for player_id in self.player_ids:
             player_to_hand_size[player_id] = len(self.player_hands[player_id])
-        return PlayerState(playerId, self.player_hands[playerId], player_to_hand_size, self.get_previous_plays(), self.get_turn())
+        return PlayerState(playerId, self.player_hands[playerId], player_to_hand_size, self.__get_previous_plays__(), self.get_turn())
 
     #Returns True if all players have acked completion. False otherwise
     def ack_completion(self, player_id):
@@ -80,25 +80,16 @@ class GameState:
     def get_turn(self):
         return self.turn
 
-    def get_previous_plays(self):
+    def __get_previous_plays__(self):
         return self.previous_plays
-
-    def clear_previous_plays(self):
-        self.previous_plays = []
 
     def get_id(self):
         return self.game_id
 
-    def get_players_ids(self):
-        return self.player_ids
-
-    def get_finished_players(self):
-        return self.finished_players
-
     def is_game_finished(self):
         return len(self.finished_players) == len(self.player_ids)
 
-    def get_next_player(self, currentPlayerId):
+    def __get_next_player__(self, currentPlayerId):
         index = self.player_ids.index(currentPlayerId)
 
         while(True):
@@ -114,13 +105,13 @@ class GameState:
         json = {}
         json['playerHands'] = self.player_hands
         json['turn'] = self.turn
-        json['previousPlays'] = self.jsonify_previous_plays()
+        json['previousPlays'] = self.__jsonify_previous_plays__()
         json['finishedPlayers'] = self.finished_players
         json['playerIds'] = self.player_ids
         json['ackedCompletion'] = self.players_recognizing_completion
         return json
 
-    def jsonify_previous_plays(self):
+    def __jsonify_previous_plays__(self):
         prev_plays_json = []
         for play in self.previous_plays:
             play_dict = {}
@@ -138,7 +129,7 @@ class GameState:
                and self.previous_plays == other.previous_plays \
                and self.players_recognizing_completion == other.players_recognizing_completion
 
-def get_random_hands(number_of_players):
+def __get_random_hands__(number_of_players):
         cards = []
         for rank in range(2, 15):
             for suit in range(0, 4):

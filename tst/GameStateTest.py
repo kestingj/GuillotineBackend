@@ -3,76 +3,77 @@ from GameState import *
 
 class GameStateTest(unittest.TestCase):
 
-    playerIds = ["Joseph", "Peter", "Nick", "Micha"]
+    player_ids = ["Joseph", "Peter", "Nick", "Micha"]
+
 
     def setUp(self):
-        self.gameState = GameState()
-        self.gameState.new_game(self.playerIds, self.playerIds[0])
+        self.game_state = GameState()
+        self.game_state.new_game(self.player_ids, self.player_ids[0])
 
     def testHandsAreUnique(self):
-        allCards = set()
+        all_cards = set()
 
-        for i in range(0, len(self.playerIds)):
-            hand = self.gameState.get_player_state(self.playerIds[i])['hand']
+        for i in range(0, len(self.player_ids)):
+            hand = self.game_state.get_player_state(self.player_ids[i])['hand']
             self.assertEqual(len(hand), 13)
-            allCards = allCards.union(hand)
+            all_cards = all_cards.union(hand)
 
-        self.assertEquals(len(allCards), 52)
+        self.assertEquals(len(all_cards), 52)
 
     def testPlayOneCard(self):
-        totalPlays = 8
-        expectedPreviousPlays = []
-        for i in range(0, totalPlays):
-            playerId = self.playerIds[i % len(self.playerIds)]
-            play = self.playHandForPlayer(playerId)
-            expectedPreviousPlays.append((playerId, play))
-            self.assertHandPlayed(expectedPreviousPlays)
+        total_plays = 8
+        expected_previous_plays = []
+        for i in range(0, total_plays):
+            player_id = self.player_ids[i % len(self.player_ids)]
+            play = self.play_hand_for_player(player_id)
+            expected_previous_plays.append((player_id, play))
+            self.assertHandPlayed(expected_previous_plays)
 
     def testPlayHandReturnsFalse_whenPlayerCantPlayHand(self):
         invalid = set([Card(15, 6)])
-        self.assertRaises(ValueError, self.gameState.play, self.playerIds[0], invalid)
+        self.assertRaises(ValueError, self.game_state.play, self.player_ids[0], invalid)
 
     def testInitThrows_whenPlayerToGoFirstNotInPlayerIds(self):
-        self.assertRaises(ValueError, self.gameState.new_game, self.playerIds, "Alex")
+        self.assertRaises(ValueError, self.game_state.new_game, self.player_ids, "Alex")
 
     def testPlayHandReturnsFalse_whenItIsNotThatPlayersTurn(self):
-        self.assertRaises(ValueError, self.gameState.play, "Micha", set())
+        self.assertRaises(ValueError, self.game_state.play, "Micha", set())
 
     def testGetNextPlayer(self):
-        self.assertEqual(self.playerIds[1], self.gameState.get_next_player(self.playerIds[0]))
-        self.gameState.finished_players.append(self.playerIds[2])
+        self.assertEqual(self.player_ids[1], self.game_state.__get_next_player__(self.player_ids[0]))
+        self.game_state.finished_players.append(self.player_ids[2])
         # since player 2 has finished the game, he should be skipped
-        self.assertEqual(self.playerIds[3], self.gameState.get_next_player(self.playerIds[1]))
-        self.assertEqual(self.playerIds[0], self.gameState.get_next_player(self.playerIds[3]))
+        self.assertEqual(self.player_ids[3], self.game_state.__get_next_player__(self.player_ids[1]))
+        self.assertEqual(self.player_ids[0], self.game_state.__get_next_player__(self.player_ids[3]))
 
     def testIsGameFinished(self):
-        self.assertFalse(self.gameState.is_game_finished())
+        self.assertFalse(self.game_state.is_game_finished())
         for i in range(0, 3):
-            self.gameState.finished_players.append(self.playerIds[i])
+            self.game_state.finished_players.append(self.player_ids[i])
 
-        self.assertTrue(self.gameState.is_game_finished())
+        self.assertTrue(self.game_state.is_game_finished())
 
     def testGetPlayerState(self):
-        player_state = self.gameState.get_player_state(self.playerIds[0])
-        self.assertEqual(player_state['playersToCardsInHand'][self.playerIds[0]], 13)
+        player_state = self.game_state.get_player_state(self.player_ids[0])
+        self.assertEqual(player_state['playersToCardsInHand'][self.player_ids[0]], 13)
 
     def test_serialization_deserialization(self):
-        self.playHandForPlayer(self.playerIds[0])
-        serialized_game = self.gameState.serialize()
+        self.play_hand_for_player(self.player_ids[0])
+        serialized_game = self.game_state.serialize()
         deserialized_game = GameState()
-        deserialized_game.deserialize(serialized_game, self.gameState.get_id())
-        self.assertEqual(self.gameState, deserialized_game)
+        deserialized_game.deserialize(serialized_game, self.game_state.get_id())
+        self.assertEqual(self.game_state, deserialized_game)
 
 
-    def playHandForPlayer(self, playerId):
-        playerHand = self.gameState.get_player_state(playerId)['hand'].copy()
-        playerPlay = set([playerHand.pop()]) # Play one card
-        self.gameState.play(playerId, playerPlay)
-        return playerPlay
+    def play_hand_for_player(self, player_id):
+        player_hand = self.game_state.get_player_state(player_id)['hand'].copy()
+        player_play = set([player_hand.pop()]) # Play one card
+        self.game_state.play(player_id, player_play)
+        return player_play
 
     def assertHandPlayed(self, expectedPreviousPlays):
-        previousPlays = self.gameState.get_previous_plays()
-        self.assertEquals(expectedPreviousPlays, previousPlays)
+        previous_plays = self.game_state.__get_previous_plays__()
+        self.assertEquals(expectedPreviousPlays, previous_plays)
 
 if __name__ == '__main__':
     unittest.main()
