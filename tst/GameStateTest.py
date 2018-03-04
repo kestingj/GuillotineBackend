@@ -18,7 +18,7 @@ class GameStateTest(unittest.TestCase):
             self.assertEqual(len(hand), 13)
             all_cards = all_cards.union(hand)
 
-        self.assertEquals(len(all_cards), 52)
+        self.assertEqual(len(all_cards), 52)
 
     def testPlayOneCard(self):
         total_plays = 8
@@ -57,7 +57,7 @@ class GameStateTest(unittest.TestCase):
         player_state = self.game_state.get_player_state(self.player_ids[0])
         self.assertEqual(player_state['playersToCardsInHand'][self.player_ids[0]], 13)
 
-    def test_serialization_deserialization(self):
+    def testSerializationDeserialization(self):
         self.play_hand_for_player(self.player_ids[0])
         serialized_game = self.game_state.serialize()
         deserialized_game = GameState()
@@ -73,7 +73,7 @@ class GameStateTest(unittest.TestCase):
 
     def assertHandPlayed(self, expectedPreviousPlays):
         previous_plays = self.game_state.__get_previous_plays__()
-        self.assertEquals(expectedPreviousPlays, previous_plays)
+        self.assertEqual(expectedPreviousPlays, previous_plays)
 
 if __name__ == '__main__':
     unittest.main()

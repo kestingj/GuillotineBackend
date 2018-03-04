@@ -28,6 +28,7 @@ class GameManager:
             raise ValueError('No game with id: ' + game_id + ' is currently being managed by this instance')
         game_state = self.games[game_id]
         game_state.play(player_id, hand)
+        self.checkpoint_state(game_id)
         self.push_state_to_player(player_id, game_state.get_player_state(game_state.get_turn()))
 
     def game_id_exists(self, game_id):
@@ -46,7 +47,8 @@ class GameManager:
 
     def checkpoint_state(self, game_id):
         game_state = self.games[game_id]
-        serialized_game_state = game_state
+        serialized_game_state = game_state.serialize()
+
 
     def push_state_to_player(self, player_id, player_state):
         pass
