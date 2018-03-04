@@ -10,7 +10,7 @@ class GameStateCheckpointDao:
         item = {'gameId' : game_id,
                 'serializedGameState' : serialized_game_state,
                 'sequenceNumber' : sequence_number,
-                'timestamp' : }
+                'timestamp' : 100} # TODO Actual timestamp
 
     def load_checkpoint(self, game_id):
         pass
