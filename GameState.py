@@ -10,6 +10,7 @@ from PlayerState import PlayerState
 # History of plays made so far in the game
 # Players that have already finished the game
 # Players that have acked the completion of the game
+# The player who has the next play
 class GameState:
     def __init__(self):
         self.initialized = False

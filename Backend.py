@@ -5,8 +5,11 @@ from Card import Card
 app = Flask(__name__)
 game_manager = GameManager()
 
-@app.route('/games', methods=['POST'])
+@app.route('/games', methods=['POST','GET'])
 def start_new_game():
+    if request.method == 'GET':
+        print ("BBBIIIITCH")
+    print ("NEW GAME")
     player_ids = request.get_json()['playerIds']
     starting_player = request.get_json()['startingPlayer']
     game_id = request.get_json()['gameId']
@@ -31,4 +34,4 @@ def play(game_id, player_id):
         game_manager.ack_finished_game(game_id, player_id)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='localhost', port=20001)

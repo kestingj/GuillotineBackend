@@ -41,13 +41,16 @@ class GameManagerTest(unittest.TestCase):
         player_state = self.game_manager.get_player_state(self.game_id, self.player_ids[0])
         self.assertEqual(player_state, mockedPlayerState)
 
+    @patch('GameStateCheckpointDao.GameStateCheckpointDao')
     @patch('GameState.GameState')
-    def testPlayHand(self, mock_game_state):
-
-        self.game_manager.games[self.game_id] = mock_game_state
+    def testPlayHand(self, mock_game_state, mock_checkpoint_dao):
+        sequence_number = 0
+        self.game_manager.games[self.game_id] = (mock_game_state, sequence_number)
+        self.game_manager.checkpoint_dao = mock_checkpoint_dao
 
         self.game_manager.play_hand(self.game_id, self.player_ids[0], [])
         mock_game_state.play.assert_called()
+        mock_checkpoint_dao.checkpoint_game_state.assert_called()
 
     @patch('GameState.GameState')
     def testAckFinishedGame(self, mock_game_state):
@@ -69,10 +72,6 @@ class GameManagerTest(unittest.TestCase):
 
         self.assertFalse(self.game_manager.game_id_exists(self.game_id))
 
-    def testCheckpointState(self):
-        # TODO Write when implemented
-        pass
-
     def testPushStateToPlayer(self):
         # TODO Write when implemented
         pass
@@ -80,7 +79,7 @@ class GameManagerTest(unittest.TestCase):
     def __initialize_game_state__(self):
         game_state = GameState()
         game_state.new_game(self.game_id, self.player_ids, self.player_ids[0])
-        self.game_manager.__add_game__(game_state)
+        self.game_manager.__add_game__(game_state, 0)
         return game_state
 
 if __name__ == '__main__':
