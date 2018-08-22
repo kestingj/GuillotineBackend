@@ -31,7 +31,7 @@ class GameManager:
         game_state = self.games[game_id][0]
         game_state.play(player_id, hand)
         # TODO if this fails we may need to refresh the cache
-        self.checkpoint_state(game_id)
+        self.checkpoint_state(game_id, player_id)
         self.push_state_to_player(player_id, game_state.get_player_state(game_state.get_turn()))
 
     def game_id_exists(self, game_id):
@@ -58,6 +58,7 @@ class GameManager:
         player_index = game_state.get_index_for_player(player_id)
 
         sequence_number = self.games[game_id][1]
+
         self.checkpoint_dao.checkpoint_game_state(
             game_id,
             player_index,
@@ -70,3 +71,4 @@ class GameManager:
     def push_state_to_player(self, player_id, player_state):
         pass
         # use push notifications to push state to player
+

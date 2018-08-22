@@ -1,5 +1,7 @@
 
 from Card import Card
+from Card import serialize_card_set
+from Card import deserialize_card_list
 from random import shuffle
 from PlayerState import PlayerState
 
@@ -14,21 +16,24 @@ class GameState:
     def __init__(self):
         self.initialized = False
 
+    # TODO make this a static method
     def deserialize(self, game_json, game_id):
         if self.initialized:
             raise ValueError("Game already initialized")
         self.game_id = game_id
         self.player_ids = game_json['playerIds']
+        self.turn = game_json['turn']
         self.previous_plays = self.deserialize_previous_plays(game_json['previousPlays'])
         self.player_hands = game_json['playerHands']
-        self.turn = game_json['turn']
         self.finished_players= game_json['finishedPlayers'] # Players that have played all their cards or have dropped from the game
         self.initialized = True
 
-    def deserialize_previous_plays(self, previous_plays_json):
+    def deserialize_previous_plays(self, previous_plays):
+        current_player = self.player_ids[0]
+
         previous_plays = []
-        for play in previous_plays_json:
-            previous_plays.append((play['playerId'], play['play']))
+        for play in previous_plays:
+            previous_plays.append((current_player, deserialize_card_list(play)))
         return previous_plays
 
     def new_game(self, game_id, player_ids, player_to_go_first):
@@ -65,7 +70,13 @@ class GameState:
         player_to_hand_size = {}
         for player_id in self.player_ids:
             player_to_hand_size[player_id] = len(self.player_hands[player_id])
-        return PlayerState(playerId, self.player_hands[playerId], player_to_hand_size, self.__get_previous_plays__(), self.get_turn())
+        return PlayerState(
+            playerId,
+            serialize_card_set(self.player_hands[playerId]),
+            player_to_hand_size,
+            self.__serialize_previous_plays__(),
+            self.get_turn(),
+            self.player_ids)
 
     def get_turn(self):
         return self.turn
@@ -94,23 +105,11 @@ class GameState:
 
         return self.player_ids[index]
 
-    def serialize(self):
-        json = {}
-        json['playerHands'] = self.player_hands
-        json['turn'] = self.turn
-        json['previousPlays'] = self.__jsonify_previous_plays__()
-        json['finishedPlayers'] = self.finished_players
-        json['playerIds'] = self.player_ids
-        return json
-
-    def __jsonify_previous_plays__(self):
-        prev_plays_json = []
+    def __serialize_previous_plays__(self):
+        prev_plays_list = []
         for play in self.previous_plays:
-            play_dict = {}
-            play_dict['playerId'] = play[0]
-            play_dict['play'] = play[1]
-            prev_plays_json.append(play_dict)
-        return prev_plays_json
+            prev_plays_list.append(serialize_card_set(play))
+        return prev_plays_list
 
     def __eq__(self, other):
         return self.game_id == other.game_id \
