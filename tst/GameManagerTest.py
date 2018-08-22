@@ -52,26 +52,6 @@ class GameManagerTest(unittest.TestCase):
         mock_game_state.play.assert_called()
         mock_checkpoint_dao.checkpoint_game_state.assert_called()
 
-    @patch('GameState.GameState')
-    def testAckFinishedGame(self, mock_game_state):
-        self.game_manager.games[self.game_id] = mock_game_state
-        player_id = self.player_ids[0]
-
-        # When player ack is not the final ack
-        mock_game_state.ack_completion = MagicMock(return_value=False, player_id=player_id)
-
-        self.game_manager.ack_finished_game(self.game_id, player_id)
-        mock_game_state.ack_completion.assert_called_with(player_id)
-
-        self.assertTrue(self.game_manager.game_id_exists(self.game_id))
-
-        # When player ack is the final ack
-        mock_game_state.ack_completion = MagicMock(return_value=True, player_id=player_id)
-
-        self.game_manager.ack_finished_game(self.game_id, player_id)
-
-        self.assertFalse(self.game_manager.game_id_exists(self.game_id))
-
     def testPushStateToPlayer(self):
         # TODO Write when implemented
         pass

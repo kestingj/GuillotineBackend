@@ -9,7 +9,6 @@ from PlayerState import PlayerState
 # Hands for each player
 # History of plays made so far in the game
 # Players that have already finished the game
-# Players that have acked the completion of the game
 # The player who has the next play
 class GameState:
     def __init__(self):
@@ -25,7 +24,6 @@ class GameState:
         self.turn = game_json['turn']
         self.finished_players= game_json['finishedPlayers'] # Players that have played all their cards or have dropped from the game
         self.initialized = True
-        self.players_recognizing_completion = game_json['ackedCompletion']
 
     def deserialize_previous_plays(self, previous_plays_json):
         previous_plays = []
@@ -48,7 +46,6 @@ class GameState:
         self.player_ids = player_ids
         self.turn = player_to_go_first
         self.finished_players = []
-        self.players_recognizing_completion = []
         self.initialized = True
 
     # Throws if playerId does not equal turn or if play is not a subset of playerId's current hand
@@ -69,14 +66,6 @@ class GameState:
         for player_id in self.player_ids:
             player_to_hand_size[player_id] = len(self.player_hands[player_id])
         return PlayerState(playerId, self.player_hands[playerId], player_to_hand_size, self.__get_previous_plays__(), self.get_turn())
-
-    #Returns True if all players have acked completion. False otherwise
-    def ack_completion(self, player_id):
-        if player_id not in self.players_recognizing_completion:
-            self.players_recognizing_completion.append(player_id)
-        if len(self.players_recognizing_completion) == len(self.finished_players):
-            return True
-        return False
 
     def get_turn(self):
         return self.turn
@@ -109,7 +98,6 @@ class GameState:
         json['previousPlays'] = self.__jsonify_previous_plays__()
         json['finishedPlayers'] = self.finished_players
         json['playerIds'] = self.player_ids
-        json['ackedCompletion'] = self.players_recognizing_completion
         return json
 
     def __jsonify_previous_plays__(self):
@@ -128,7 +116,6 @@ class GameState:
                and self.turn == other.turn \
                and self.finished_players == other.finished_players \
                and self.previous_plays == other.previous_plays \
-               and self.players_recognizing_completion == other.players_recognizing_completion
 
 def __get_random_hands__(number_of_players):
         cards = []
