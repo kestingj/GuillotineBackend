@@ -10,7 +10,6 @@ from PlayerState import PlayerState
 # Players in the game
 # Hands for each player
 # History of plays made so far in the game
-# Players that have already finished the game
 # The player who has the next play
 class GameState:
     def __init__(self):
@@ -24,8 +23,9 @@ class GameState:
         self.player_ids = game_json['playerIds']
         self.turn = game_json['turn']
         self.previous_plays = self.deserialize_previous_plays(game_json['previousPlays'])
-        self.player_hands = game_json['playerHands']
-        self.finished_players= game_json['finishedPlayers'] # Players that have played all their cards or have dropped from the game
+        self.player_hands = {}
+        for i in range(len(self.player_ids)):
+            self.player_hands[self.player_ids[i]] = game_json['player' + str(i) + 'Hand']
         self.initialized = True
 
     def deserialize_previous_plays(self, previous_plays):
@@ -50,7 +50,6 @@ class GameState:
         self.game_id = game_id
         self.player_ids = player_ids
         self.turn = player_to_go_first
-        self.finished_players = []
         self.initialized = True
 
     # Throws if playerId does not equal turn or if play is not a subset of playerId's current hand
@@ -61,10 +60,14 @@ class GameState:
         if not (play.issubset(existing_hand)):
             raise ValueError("play: " + str(play) + " is not a subset of existing hand " + str(existing_hand) + " for player " + player_id)
         self.player_hands[player_id] = existing_hand - play
-        if len(self.player_hands[player_id]) == 0:
-            self.finished_players.append(player_id)
-        self.previous_plays.append((player_id, play))
-        self.turn = self.__get_next_player__(player_id)
+        self.previous_plays.append(play)
+        next_turn = self.__get_next_player__(player_id)
+
+        # Skip over finished players, appending empty plays as we do so
+        while len(self.player_hands[next_turn]):
+            self.previous_plays.append(set())
+            next_turn = self.__get_next_player__(next_turn)
+        self.turn = next_turn
 
     def get_player_state(self, playerId):
         player_to_hand_size = {}
@@ -91,17 +94,18 @@ class GameState:
         return self.game_id
 
     def is_game_finished(self):
-        return len(self.finished_players) == len(self.player_ids)
+        finished_count = 0
+        for player in self.player_ids:
+            if len(self.player_hands[player]) == 0:
+                finished_count += 1
+        return finished_count == len(self.player_ids) - 1
 
     def __get_next_player__(self, currentPlayerId):
         index = self.player_ids.index(currentPlayerId)
 
-        while(True):
-            index += 1
-            if index >= len(self.player_ids):
-                index = 0
-            if self.player_ids[index] not in self.finished_players:
-                break
+        index += 1
+        if index >= len(self.player_ids):
+            index = 0
 
         return self.player_ids[index]
 
@@ -116,8 +120,7 @@ class GameState:
                and self.player_ids == other.player_ids \
                and self.player_hands == other.player_hands \
                and self.turn == other.turn \
-               and self.finished_players == other.finished_players \
-               and self.previous_plays == other.previous_plays \
+               and self.previous_plays == other.previous_plays
 
 def __get_random_hands__(number_of_players):
         cards = []
