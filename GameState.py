@@ -70,6 +70,9 @@ class GameState:
     def get_turn(self):
         return self.turn
 
+    def get_index_for_player(self, player_id):
+        return self.player_ids.index(player_id)
+
     def __get_previous_plays__(self):
         return self.previous_plays
 

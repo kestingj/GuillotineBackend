@@ -48,11 +48,24 @@ class GameManager:
         game_state = self.games[game_id][0]
         return game_state.get_player_state(player_id)
 
-    def checkpoint_state(self, game_id):
+    def checkpoint_state(self, game_id, player_id):
         game_state = self.games[game_id][0]
-        serialized_game_state = game_state.serialize()
+        player_state = game_state.get_player_state(player_id)
+
+        updated_hand = player_state['hand']
+        turn = player_state['turn']
+        previous_plays = player_state['previousPlays']
+        player_index = game_state.get_index_for_player(player_id)
+
         sequence_number = self.games[game_id][1]
-        self.checkpoint_dao.checkpoint_game_state(game_id, serialized_game_state, sequence_number)
+        self.checkpoint_dao.checkpoint_game_state(
+            game_id,
+            player_index,
+            previous_plays,
+            updated_hand,
+            turn,
+            sequence_number)
+        self.games[game_id][1] += 1
 
     def push_state_to_player(self, player_id, player_state):
         pass
