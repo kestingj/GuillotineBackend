@@ -25,16 +25,19 @@ class Card(dict):
 
 
 def deserialize(card_string):
+    if card_string == '':
+        return
     split = card_string.split(':')
-    return Card(int(split[0]), int(split[1]))
+    return Card(int(split[1]), int(split[0]))
 
 
 def deserialize_card_list(card_list_string):
     split = card_list_string.split(',')
     card_set = set()
     for card_string in split:
-        card_set.add(deserialize(card_string))
-
+        card = deserialize(card_string)
+        if card is not None:
+            card_set.add(deserialize(card_string))
     return card_set
 
 
@@ -44,6 +47,5 @@ def serialize_card_set(card_set):
         if card_list_string != '':
             card_list_string += ','
         card_list_string += card.serialize()
-
     return card_list_string
 

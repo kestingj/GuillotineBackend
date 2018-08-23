@@ -14,7 +14,7 @@ class GameStateTest(unittest.TestCase):
         all_cards = set()
 
         for i in range(0, len(self.player_ids)):
-            hand = self.game_state.get_player_state(self.player_ids[i])['hand']
+            hand = deserialize_card_list(self.game_state.get_player_state(self.player_ids[i])['hand'])
             self.assertEqual(len(hand), 13)
             all_cards = all_cards.union(hand)
 
@@ -26,7 +26,7 @@ class GameStateTest(unittest.TestCase):
         for i in range(0, total_plays):
             player_id = self.player_ids[i % len(self.player_ids)]
             play = self.play_hand_for_player(player_id)
-            expected_previous_plays.append((player_id, play))
+            expected_previous_plays.append(play)
             self.assertHandPlayed(expected_previous_plays)
 
     def testPlayHandReturnsFalse_whenPlayerCantPlayHand(self):
@@ -36,44 +36,69 @@ class GameStateTest(unittest.TestCase):
     def testInitThrows_whenPlayerToGoFirstNotInPlayerIds(self):
         self.assertRaises(ValueError, self.game_state.new_game, self.game_id, self.player_ids, "Alex")
 
-    def testPlayHandReturnsFalse_whenItIsNotThatPlayersTurn(self):
+    def testPlayHandThrows_whenItIsNotThatPlayersTurn(self):
         self.assertRaises(ValueError, self.game_state.play, "Micha", set())
 
-    def testGetNextPlayer(self):
-        self.assertEqual(self.player_ids[1], self.game_state.__get_next_player__(self.player_ids[0]))
-        self.game_state.finished_players.append(self.player_ids[2])
+    def testNextPlayer(self):
+        self.assertEqual(self.player_ids[0], self.game_state.get_player_state(self.player_ids[0])['turn'])
+        self.play_hand_for_player(self.player_ids[0])
+        self.assertEqual(self.player_ids[1], self.game_state.get_player_state(self.player_ids[1])['turn'])
+        self.finish_player(self.player_ids[2])
         # since player 2 has finished the game, he should be skipped
-        self.assertEqual(self.player_ids[3], self.game_state.__get_next_player__(self.player_ids[1]))
-        self.assertEqual(self.player_ids[0], self.game_state.__get_next_player__(self.player_ids[3]))
+        self.assertEqual(self.player_ids[3], self.game_state.get_player_state(self.player_ids[3])['turn'])
+        self.play_hand_for_player(self.player_ids[3])
+        self.assertEqual(self.player_ids[0], self.game_state.get_player_state(self.player_ids[0])['turn'])
 
     def testIsGameFinished(self):
         self.assertFalse(self.game_state.is_game_finished())
-        for i in range(0, 4):
-            self.game_state.finished_players.append(self.player_ids[i])
+        for i in range(len(self.player_ids) - 1):
+            self.finish_player(self.player_ids[i])
 
         self.assertTrue(self.game_state.is_game_finished())
 
     def testGetPlayerState(self):
-        player_state = self.game_state.get_player_state(self.player_ids[0])
-        self.assertEqual(player_state['playersToCardsInHand'][self.player_ids[0]], 13)
+        for i in range(len(self.player_ids)):
+            player_id = self.player_ids[i]
+            player_state = self.game_state.get_player_state(player_id)
+            for j in range(len(self.player_ids)):
+                self.assertEqual(player_state['playersToCardsInHand'][self.player_ids[j]], 13)
 
-    def testSerializationDeserialization(self):
-        self.play_hand_for_player(self.player_ids[0])
-        serialized_game = self.game_state.serialize()
-        deserialized_game = GameState()
-        deserialized_game.deserialize(serialized_game, self.game_state.get_id())
-        self.assertEqual(self.game_state, deserialized_game)
+            self.assertEqual(player_state['playerId'], player_id)
+            self.assertEqual(player_state['turn'], self.player_ids[0])
+            self.assertEqual(player_state['previousPlays'], [])
+            self.assertEqual(player_state['hand'], serialize_card_set(self.game_state.player_hands[player_id]))
+            self.assertEqual(player_state['turnOrder'], self.player_ids)
 
+    def testFinishedPlayersAddEmptyPlayToPReviousPlays(self):
+        pass
+
+    def testInitializeFromCheckpoint(self):
+        pass
+
+    def testGetIndexForPlayer(self):
+        pass
 
     def play_hand_for_player(self, player_id):
-        player_hand = self.game_state.get_player_state(player_id)['hand'].copy()
-        player_play = set([player_hand.pop()]) # Play one card
+        player_hand = deserialize_card_list(self.game_state.get_player_state(player_id)['hand'])
+        player_play = set()
+        player_play.add(player_hand.pop())  # Play one card
         self.game_state.play(player_id, player_play)
         return player_play
 
     def assertHandPlayed(self, expectedPreviousPlays):
         previous_plays = self.game_state.__get_previous_plays__()
         self.assertEqual(expectedPreviousPlays, previous_plays)
+
+    def finish_player(self, player_id):
+        player_state = self.game_state.get_player_state(self.game_state.get_turn())
+        while len(deserialize_card_list(self.game_state.get_player_state(player_id)['hand'])) > 0:
+            if player_state['playerId'] == player_id:
+                play = set()
+                play.add(deserialize_card_list(player_state['hand']).pop())
+                self.game_state.play(player_id, play)
+            else:
+                self.game_state.play(player_state['playerId'], set())
+            player_state = self.game_state.get_player_state(self.game_state.get_turn())
 
 if __name__ == '__main__':
     unittest.main()

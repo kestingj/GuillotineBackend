@@ -35,7 +35,7 @@ class GameManagerTest(unittest.TestCase):
     def testGetPlayerState(self):
         game_state = self.__initialize_game_state__()
 
-        mockedPlayerState = PlayerState(self.player_ids[0], [], {}, [], self.player_ids[1])
+        mockedPlayerState = PlayerState(self.player_ids[0], [], {}, [], self.player_ids[1], self.player_ids)
         game_state.get_player_state = MagicMock(return_value=mockedPlayerState)
 
         player_state = self.game_manager.get_player_state(self.game_id, self.player_ids[0])

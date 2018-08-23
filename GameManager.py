@@ -66,7 +66,8 @@ class GameManager:
             updated_hand,
             turn,
             sequence_number)
-        self.games[game_id][1] += 1
+
+        self.games[game_id] = (game_state, self.games[game_id][1] + 1)
 
     def push_state_to_player(self, player_id, player_state):
         pass

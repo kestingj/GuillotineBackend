@@ -62,9 +62,8 @@ class GameState:
         self.player_hands[player_id] = existing_hand - play
         self.previous_plays.append(play)
         next_turn = self.__get_next_player__(player_id)
-
         # Skip over finished players, appending empty plays as we do so
-        while len(self.player_hands[next_turn]):
+        while len(self.player_hands[next_turn]) == 0:
             self.previous_plays.append(set())
             next_turn = self.__get_next_player__(next_turn)
         self.turn = next_turn
