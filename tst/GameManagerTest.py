@@ -48,9 +48,15 @@ class GameManagerTest(unittest.TestCase):
         self.game_manager.games[self.game_id] = (mock_game_state, sequence_number)
         self.game_manager.checkpoint_dao = mock_checkpoint_dao
 
+        # Mocks for Checkpoint
+        mockedPlayerState = PlayerState(self.player_ids[0], '', {}, [], self.player_ids[1], self.player_ids)
+        mock_game_state.get_player_state = MagicMock(return_value=mockedPlayerState)
+        mock_game_state.get_index_for_player = MagicMock(return_value=0)
+
         self.game_manager.play_hand(self.game_id, self.player_ids[0], [])
-        mock_game_state.play.assert_called()
-        mock_checkpoint_dao.checkpoint_game_state.assert_called()
+        mock_game_state.play.assert_called_with(self.player_ids[0], [])
+
+        mock_checkpoint_dao.checkpoint_game_state.assert_called_with(self.game_id, 0, [], '', self.player_ids[1], 0)
 
     def testPushStateToPlayer(self):
         # TODO Write when implemented

@@ -25,16 +25,16 @@ class GameState:
         self.previous_plays = self.deserialize_previous_plays(game_json['previousPlays'])
         self.player_hands = {}
         for i in range(len(self.player_ids)):
-            self.player_hands[self.player_ids[i]] = game_json['player' + str(i) + 'Hand']
+            self.player_hands[self.player_ids[i]] = deserialize_card_list(game_json['player' + str(i) + 'Hand'])
         self.initialized = True
 
-    def deserialize_previous_plays(self, previous_plays):
-        current_player = self.player_ids[0]
+    def deserialize_previous_plays(self, serialized_previous_plays):
 
-        previous_plays = []
-        for play in previous_plays:
-            previous_plays.append((current_player, deserialize_card_list(play)))
-        return previous_plays
+        deserialized_previous_plays = []
+        for play in serialized_previous_plays:
+            deserialized_previous_plays.append(deserialize_card_list(play))
+
+        return deserialized_previous_plays
 
     def new_game(self, game_id, player_ids, player_to_go_first):
         if self.initialized:
@@ -120,6 +120,16 @@ class GameState:
                and self.player_hands == other.player_hands \
                and self.turn == other.turn \
                and self.previous_plays == other.previous_plays
+
+    def __str__(self):
+        return str({'gameId': self.game_id,
+                'playerIds': self.player_ids,
+                'playerHands': self.player_hands,
+                'turn': self.turn,
+                'previousPlays': self.previous_plays})
+
+    def __repr__(self):
+        return self.__str__()
 
 def __get_random_hands__(number_of_players):
         cards = []

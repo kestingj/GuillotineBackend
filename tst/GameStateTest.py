@@ -69,14 +69,39 @@ class GameStateTest(unittest.TestCase):
             self.assertEqual(player_state['hand'], serialize_card_set(self.game_state.player_hands[player_id]))
             self.assertEqual(player_state['turnOrder'], self.player_ids)
 
-    def testFinishedPlayersAddEmptyPlayToPReviousPlays(self):
-        pass
+    def testFinishedPlayersAddEmptyPlayToPreviousPlays(self):
+        self.finish_player(self.player_ids[2])
+        base_line = self.game_state.get_player_state(self.player_ids[0])['previousPlays']
+        self.play_hand_for_player(self.player_ids[3])
+        self.play_hand_for_player(self.player_ids[0])
+        self.play_hand_for_player(self.player_ids[1])
+
+        new_previous_plays = self.game_state.get_player_state(self.player_ids[0])['previousPlays']
+
+        self.assertEqual(len(base_line) + 4, len(new_previous_plays))
+        self.assertEqual(new_previous_plays[len(new_previous_plays) - 1], '')
 
     def testInitializeFromCheckpoint(self):
-        pass
+        # Play one round
+        for i in range(len(self.player_ids)):
+            self.play_hand_for_player(self.player_ids[i])
+
+         # Serialize the game state
+        game_state_json = {}
+        game_state_json['playerIds'] = self.player_ids
+        game_state_json['turn'] = self.game_state.get_turn()
+        game_state_json['previousPlays'] = self.game_state.get_player_state(self.player_ids[0])['previousPlays']
+        for i in range(len(self.player_ids)):
+            game_state_json['player' + str(i) + 'Hand'] = self.game_state.get_player_state(self.player_ids[i])['hand']
+
+        new_game_state = GameState()
+        new_game_state.deserialize(game_state_json, self.game_id)
+
+        self.assertEqual(new_game_state, self.game_state)
 
     def testGetIndexForPlayer(self):
-        pass
+        for i in range(len(self.player_ids)):
+            self.assertEqual(self.game_state.get_index_for_player(self.player_ids[i]), i)
 
     def play_hand_for_player(self, player_id):
         player_hand = deserialize_card_list(self.game_state.get_player_state(player_id)['hand'])
