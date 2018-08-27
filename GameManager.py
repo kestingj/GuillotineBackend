@@ -15,6 +15,10 @@ class GameManager:
         game_state.new_game(game_id, player_ids, player_to_go_first)
         self.__add_game__(game_state, 0)
 
+    def finish_game(self, game_id):
+        pass
+        # TODO
+
     def __add_game__(self, game_state, sequence_number):
         if game_state.get_id() in self.games:
             raise ValueError('Game with id: ' + game_state.get_id() + ' already exists')

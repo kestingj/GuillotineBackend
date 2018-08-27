@@ -3,9 +3,17 @@ import time
 
 class GameStateCheckpointDao:
 
-    def __init__(self):
-        dynamodb = boto3.resource('dynamodb', region_name='us-west-2')
-        self.table = dynamodb.Table('GameStateCheckpointTable-us-west-2')
+    # Dependency Injection
+    def __init__(self, isTest):
+        if (isTest):
+            dynamo_db = boto3.resource(
+                'dynamodb', aws_access_key_id="anything",
+                aws_secret_access_key="anything",
+                region_name="us-west-2",
+                endpoint_url="http://localhost:8000")
+        else:
+            dynamo_db = boto3.resource('dynamodb', region_name='us-west-2')
+        self.table = dynamo_db.Table('GameStateCheckpointTable-us-west-2')
 
     # Pass in serialized player_hands
     def new_game(self, game_id, player_ids, starting_player, player_hands):
