@@ -1,6 +1,6 @@
 import unittest
 
-# TODO To run this test a local instance of DDB must be running locally:
+# To run this test a local instance of DDB must be running locally:
 # cd ~/Downloads/dynamodb_local_latest/
 # java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb
 class GameStateCheckpointDaoTest(unittest.TestCase):
