@@ -3,11 +3,12 @@ import time
 
 class GameStateCheckpointDao:
 
-    # Dependency Injection
+    # TODO Dependency Injection
     def __init__(self, isTest):
         if (isTest):
             dynamo_db = boto3.resource(
-                'dynamodb', aws_access_key_id="anything",
+                'dynamodb',
+                aws_access_key_id="anything",
                 aws_secret_access_key="anything",
                 region_name="us-west-2",
                 endpoint_url="http://localhost:8000")
@@ -46,4 +47,4 @@ class GameStateCheckpointDao:
         self.table.update_item(Key=key, AttributeUpdates=updates, Expected=expected)
 
     def load_checkpoint(self, game_id):
-        pass
+        return self.table.get_item(Key={'gameId': game_id}, ConsistentRead=True)['Item']

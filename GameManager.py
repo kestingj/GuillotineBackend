@@ -8,7 +8,7 @@ class GameManager:
 
     def __init__(self):
         self.games = {}
-        self.checkpoint_dao = GameStateCheckpointDao()
+        self.checkpoint_dao = GameStateCheckpointDao(False)
 
     def create_new_game(self, game_id, player_ids, player_to_go_first):
         game_state = GameState()
