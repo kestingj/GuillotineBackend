@@ -21,8 +21,8 @@ class GameStateCheckpointDao:
         item = {'gameId': game_id,
                 'playerIds': player_ids,
                 'turn': starting_player,
-                'sequenceNumber': 0,
-                'timestamp': time.time()}
+                'sequenceNumber': '0',
+                'timestamp': str(time.time())}
         for i in range(len(player_ids)):
             player_id = player_ids[i]
             hand = player_hands[player_id]
@@ -30,7 +30,7 @@ class GameStateCheckpointDao:
 
         conditional_expression = 'attribute_not_exists(gameId)'
 
-        self.table.put_item(Item=item, ConditionalExpression=conditional_expression)
+        self.table.put_item(Item=item, ConditionExpression=conditional_expression)
 
     # Pass in serialized previous_plays and updated_hand
     def checkpoint_game_state(self, game_id, player_index, previous_plays, updated_hand, next_player, old_sequence_number):
@@ -39,12 +39,19 @@ class GameStateCheckpointDao:
         updates = {'turn': {'Value': next_player, 'Action': 'PUT'},
                    'player' + str(player_index) + 'Hand': {'Value': updated_hand, 'Action': 'PUT'},
                    'previousPlays': {'Value': previous_plays, 'Action': 'PUT'},
-                   'sequenceNumber': {'Value': old_sequence_number + 1, 'Action': 'PUT'},
-                   'timestamp': {'Value': time.time(), 'Action': 'PUT'}}
+                   'sequenceNumber': {'Value': str(old_sequence_number + 1), 'Action': 'PUT'},
+                   'timestamp': {'Value': str(time.time()), 'Action': 'PUT'}}
 
-        expected = {'sequenceNumber': {'Value': old_sequence_number, 'ComparisonOperator': 'EQ'}}
+        expected = {'sequenceNumber': {'Value': str(old_sequence_number), 'ComparisonOperator': 'EQ'}}
 
         self.table.update_item(Key=key, AttributeUpdates=updates, Expected=expected)
 
     def load_checkpoint(self, game_id):
-        return self.table.get_item(Key={'gameId': game_id}, ConsistentRead=True)['Item']
+        ddb_attributes = self.table.get_item(Key={'gameId': game_id}, ConsistentRead=True)
+        if 'Item' in ddb_attributes:
+            return ddb_attributes['Item']
+        else:
+            return None
+
+    def delete_game(self, game_id):
+        self.table.delete_item(Key={'gameId': game_id})
