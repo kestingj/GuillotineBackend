@@ -1,5 +1,6 @@
 import unittest
 from GameManager import *
+from GameState import __get_random_hands__
 from mock import MagicMock
 from mock import patch
 
@@ -58,9 +59,48 @@ class GameManagerTest(unittest.TestCase):
 
         mock_checkpoint_dao.checkpoint_game_state.assert_called_with(self.game_id, 0, [], '', self.player_ids[1], 0)
 
+    @patch('GameStateCheckpointDao.GameStateCheckpointDao')
+    def test_checkpoint_restored_get_player_state(self, mock_checkpoint_dao):
+        self.game_manager.checkpoint_dao = mock_checkpoint_dao
+        checkpoint = self.generate_checkpoint()
+        mock_checkpoint_dao.load_checkpoint = MagicMock(return_value=checkpoint)
+        player_state = self.game_manager.get_player_state(self.game_id, self.player_ids[0])
+        self.assertEqual(player_state['playerId'], self.player_ids[0])
+        self.assertEqual(player_state['turn'], checkpoint['turn'])
+        self.assertEqual(player_state['turnOrder'], self.player_ids)
+        self.assertEqual(player_state['previousPlays'], checkpoint['previousPlays'])
+        for player in player_state['turnOrder']:
+            self.assertEqual(player_state['playersToCardsInHand'][player], 13)
+
+    @patch('GameStateCheckpointDao.GameStateCheckpointDao')
+    def test_get_player_state_returns_null_when_checkpoint_does_not_exist(self, mock_checkpoint_dao):
+        mock_checkpoint_dao.load_checkpoint = MagicMock(return_value=None)
+        self.game_manager.checkpoint_dao = mock_checkpoint_dao
+        player_state = self.game_manager.get_player_state(self.game_id, self.player_ids[0])
+        self.assertIsNone(player_state)
+
+    def test_checkpoint_restored_play_hand(self):
+        pass
+
+    def test_play_hand_throws_when_checkpoint_does_not_exist(self):
+        pass
+
     def testPushStateToPlayer(self):
         # TODO Write when implemented
         pass
+
+    def generate_checkpoint(self):
+        checkpoint = {}
+        checkpoint['gameId'] = self.game_id
+        checkpoint['playerIds'] = self.player_ids
+        checkpoint['turn'] = self.player_ids[0]
+        checkpoint['sequenceNumber'] = '0'
+        checkpoint['previousPlays'] = []
+        checkpoint['timestamp'] = str(time.time())
+        hands = __get_random_hands__(len(self.player_ids))
+        for i in range(len(self.player_ids)):
+            checkpoint['player' + str(i) + 'Hand'] = serialize_card_set(hands[i])
+        return checkpoint
 
     def __initialize_game_state__(self):
         game_state = GameState()

@@ -30,9 +30,9 @@ class GameManager:
         logging.info('Deleted game with id: ' + str(game_id))
 
     def play_hand(self, game_id, player_id, hand):
-        if not self.game_id_exists(game_id):
-            raise ValueError('No game with id: ' + game_id + ' is currently being managed by this instance')
-        game_state = self.games[game_id][0]
+        game_state = self.load_game_state(game_id)
+        if game_state is None:
+            raise ValueError('No game with id: ' + game_id + ' exists')
         game_state.play(player_id, hand)
         # TODO if this fails we may need to refresh the cache
         self.checkpoint_state(game_id, player_id)
@@ -46,10 +46,9 @@ class GameManager:
             return False
 
     def get_player_state(self, game_id, player_id):
-        if not self.game_id_exists(game_id):
-            # TODO: Deserialize from checkpoint
+        game_state = self.load_game_state(game_id)
+        if game_state is None:
             return None
-        game_state = self.games[game_id][0]
         return game_state.get_player_state(player_id)
 
     def checkpoint_state(self, game_id, player_id):
@@ -76,4 +75,15 @@ class GameManager:
     def push_state_to_player(self, player_id, player_state):
         pass
         # use push notifications to push state to player
+
+    def load_game_state(self, game_id):
+        if not self.game_id_exists(game_id):
+            checkpoint = self.checkpoint_dao.load_checkpoint(game_id)
+            if checkpoint is None:
+                return None
+            restored_game_state = GameState()
+            restored_game_state.deserialize(checkpoint, game_id)
+            self.games[game_id] = (restored_game_state, int(checkpoint['sequenceNumber']))
+        return self.games[game_id][0]
+
 
