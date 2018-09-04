@@ -7,6 +7,10 @@ game_manager = GameManager()
 
 @app.route('/games/<string:game_id>/<string:player_id>', methods=['GET'])
 def get_player_state(game_id, player_id):
+    player_ids = request.get_json()['playerIds'] # TODO: will be unecessary with push notifications
+    player_state = game_manager.get_player_state(game_id, player_id)
+    if player_state is None:
+        game_manager.create_new_game(game_id, player_ids, player_ids[0])
     player_state = game_manager.get_player_state(game_id, player_id)
     return jsonify(player_state)
 
