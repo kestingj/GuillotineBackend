@@ -58,6 +58,9 @@ class GameStateCheckpointDaoTest(unittest.TestCase):
         self.dao.delete_game(self.game_id)
         self.assertIsNone(self.dao.load_checkpoint(self.game_id))
 
+    def test_load_game_returns_none_when_game_does_not_exist(self):
+        self.assertIsNone(self.dao.load_checkpoint('bogus'))
+
     def get_random_hands(self):
         hands = {}
         for player in self.player_ids:

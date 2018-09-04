@@ -79,11 +79,18 @@ class GameManagerTest(unittest.TestCase):
         player_state = self.game_manager.get_player_state(self.game_id, self.player_ids[0])
         self.assertIsNone(player_state)
 
-    def test_checkpoint_restored_play_hand(self):
-        pass
+    @patch('GameStateCheckpointDao.GameStateCheckpointDao')
+    def test_checkpoint_restored_play_hand(self, mock_checkpoint_dao):
+        self.game_manager.checkpoint_dao = mock_checkpoint_dao
+        checkpoint = self.generate_checkpoint()
+        mock_checkpoint_dao.load_checkpoint = MagicMock(return_value=checkpoint)
+        self.game_manager.play_hand(self.game_id, self.player_ids[0], set())
+        self.assertIsNotNone(self.game_manager.games[self.game_id])
 
-    def test_play_hand_throws_when_checkpoint_does_not_exist(self):
-        pass
+    @patch('GameStateCheckpointDao.GameStateCheckpointDao')
+    def test_play_hand_throws_when_checkpoint_does_not_exist(self, mock_checkpoint_dao):
+        self.game_manager.checkpoint_dao = mock_checkpoint_dao
+        self.assertRaises(ValueError, self.game_manager.play_hand, self.game_id, self.player_ids[0], set())
 
     def testPushStateToPlayer(self):
         # TODO Write when implemented
